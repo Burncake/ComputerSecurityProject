@@ -45,7 +45,8 @@ class MainWindow:
         RegisterWindow(self.root)
 
     def open_login(self):
-        messagebox.showinfo("Info", "Open Login Window")
+        from login_window import LoginWindow
+        LoginWindow(self.root)
 
     def encrypt_file(self):
         messagebox.showinfo("Info", "Encrypt File Window")
