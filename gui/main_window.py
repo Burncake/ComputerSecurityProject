@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from .register_window import RegisterWindow
 
 class MainWindow:
     def __init__(self, root):
@@ -41,7 +42,6 @@ class MainWindow:
 
     # Placeholder methods
     def open_register(self):
-        from register_window import RegisterWindow
         RegisterWindow(self.root)
 
     def open_login(self):
@@ -61,8 +61,3 @@ class MainWindow:
 
     def open_admin_dashboard(self):
         messagebox.showinfo("Info", "Admin Dashboard Window")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MainWindow(root)
-    root.mainloop()

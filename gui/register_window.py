@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
+from modules.utils.db_helper import insert_user, user_exists
+from modules.utils.crypto_helper import hash_passphrase
 import re
 
 class RegisterWindow:
@@ -72,7 +74,17 @@ class RegisterWindow:
             messagebox.showerror("Error", "Passphrase must contain at least one special character.")
             return
 
-        # Placeholder for DB save
+        # Check if username already exists
+        if user_exists(username):
+            messagebox.showerror("Error", f"Username '{username}' already exists.")
+            return
+
+        # Hash passphrase
+        hash_b64, salt_b64 = hash_passphrase(passphrase)
+
+        # Insert into DB
+        insert_user(username, email, hash_b64, salt_b64)
+
         messagebox.showinfo("Success", f"User '{username}' registered successfully!")
 
         self.top.destroy()
