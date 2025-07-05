@@ -6,18 +6,16 @@ import pyotp
 from modules.utils.db_helper import insert_user, user_exists
 from modules.utils.crypto_helper import hash_passphrase
 from modules.utils.otp_helper import generate_totp_secret, get_qr_image_uri, generate_qr_image
+from modules.utils import logger
 
+class RegisterFrame(tk.Frame):
+    def __init__(self, master, back_callback):
+        super().__init__(master)
+        self.back_callback = back_callback
+        self.master.geometry("400x400")
+        self.pack()
 
-class RegisterWindow:
-    def __init__(self, master):
-        self.root = master
-        self.top = tk.Toplevel(master)
-        self.top.title("Register New User")
-        self.top.geometry("400x400")
-        self.top.resizable(False, False)
-
-        # Frame: Form Entry
-        self.frame_form = tk.Frame(self.top)
+        self.frame_form = tk.Frame(self)
         self.frame_form.pack()
 
         tk.Label(self.frame_form, text="Username:").pack(pady=5)
@@ -36,19 +34,17 @@ class RegisterWindow:
         self.entry_confirm = tk.Entry(self.frame_form, width=40, show="*")
         self.entry_confirm.pack(pady=5)
 
-        # Show/hide passphrase checkbox
         self.show_var = tk.IntVar()
         chk = tk.Checkbutton(self.frame_form, text="Show Passphrase", variable=self.show_var, command=self.toggle_passphrase)
         chk.pack(pady=5)
 
         tk.Button(self.frame_form, text="Continue", command=self.prepare_totp).pack(pady=20)
-        tk.Button(self.frame_form, text="Cancel", command=self.top.destroy).pack()
+        tk.Button(self.frame_form, text="Back", command=self.back).pack()
 
-        # Frame: QR Code
-        self.frame_qr = tk.Frame(self.top)
-
-        # Frame: Verify TOTP
-        self.frame_verify = tk.Frame(self.top)
+        # QR frame
+        self.frame_qr = tk.Frame(self)
+        # Verify frame
+        self.frame_verify = tk.Frame(self)
 
     def toggle_passphrase(self):
         if self.show_var.get():
@@ -71,12 +67,11 @@ class RegisterWindow:
         if passphrase != confirm:
             messagebox.showerror("Error", "Passphrases do not match.")
             return
-        
-        # If passphrase does not contain at least one uppercase letter, one digit, and one special character or is less than 8 characters
+
         if len(passphrase) < 8:
             messagebox.showerror("Error", "Passphrase must be at least 8 characters long.")
             return
-
+        
         if not any(c.isupper() for c in passphrase):
             messagebox.showerror("Error", "Passphrase must contain at least one uppercase letter.")
             return
@@ -89,29 +84,25 @@ class RegisterWindow:
             messagebox.showerror("Error", "Passphrase must contain at least one special character.")
             return
 
-        # Check if username already exists
         if user_exists(username):
             messagebox.showerror("Error", f"Username '{username}' already exists.")
             return
 
-        # Store temporary for later
         self.username = username
         self.email = email
         self.passphrase = passphrase
 
-        # Generate TOTP
         self.totp_secret = generate_totp_secret()
         uri = get_qr_image_uri(self.totp_secret, username)
         qr_img = generate_qr_image(uri)
         self.qr_image = ImageTk.PhotoImage(qr_img)
 
-        # Switch UI to QR frame
         self.frame_form.pack_forget()
         self.show_qr_frame()
 
     def show_qr_frame(self):
         self.frame_verify.pack_forget()
-        self.top.geometry("600x700")
+        self.master.geometry("600x700")
 
         for widget in self.frame_qr.winfo_children():
             widget.destroy()
@@ -126,7 +117,7 @@ class RegisterWindow:
 
     def show_verify_frame(self):
         self.frame_qr.pack_forget()
-        self.top.geometry("400x300")
+        self.master.geometry("400x265")
 
         for widget in self.frame_verify.winfo_children():
             widget.destroy()
@@ -146,7 +137,7 @@ class RegisterWindow:
         self.frame_verify.pack()
 
     def back_to_form(self):
-        self.top.geometry("400x400")
+        self.master.geometry("400x400")
         self.frame_qr.pack_forget()
         self.frame_form.pack()
 
@@ -159,12 +150,11 @@ class RegisterWindow:
             return
 
         totp = pyotp.TOTP(self.totp_secret)
-        # Check first OTP
+
         if not totp.verify(otp1, valid_window=1):
             messagebox.showerror("Error", "First OTP invalid.")
             return
 
-        # Check second OTP
         if not totp.verify(otp2, valid_window=1):
             messagebox.showerror("Error", "Second OTP invalid.")
             return
@@ -175,5 +165,12 @@ class RegisterWindow:
         # Insert into DB
         insert_user(self.username, self.email, hash_b64, salt_b64, self.totp_secret)
 
-        messagebox.showinfo("Success", f"User '{self.username}' registered successfully!")
-        self.top.destroy()
+        logger.log_info(f"User '{self.username}' registered successfully.")
+        messagebox.showinfo("Success", f"User '{self.username}' registered successfully!")        
+
+        self.back()
+
+    def back(self):
+        self.pack_forget()
+        self.destroy()
+        self.back_callback()

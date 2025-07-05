@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import time
 
 DB_PATH = os.path.join("data", "users.db")
 
@@ -14,7 +15,9 @@ def init_db():
         email TEXT,
         passphrase_hash TEXT,
         salt TEXT,
-        totp_secret TEXT
+        totp_secret TEXT,
+        fail_count INTEGER DEFAULT 0,
+        lock_until INTEGER DEFAULT NULL
     )
     """)
     conn.commit()
@@ -37,3 +40,29 @@ def user_exists(username):
     result = cursor.fetchone()
     conn.close()
     return result is not None
+
+def get_user_auth_info(username):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT passphrase_hash, salt, totp_secret, fail_count, lock_until
+        FROM users
+        WHERE username = ?
+    """, (username,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def update_fail_count(username, fail_count, lock_until=None):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE users
+        SET fail_count = ?, lock_until = ?
+        WHERE username = ?
+    """, (fail_count, lock_until, username))
+    conn.commit()
+    conn.close()
+
+def reset_fail_count(username):
+    update_fail_count(username, 0, None)
