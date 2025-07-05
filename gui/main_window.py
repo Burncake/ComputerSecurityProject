@@ -25,7 +25,7 @@ class MainWindow:
         if session.is_logged_in():
             self.root.geometry("600x600")
             user = session.get_user()
-            tk.Label(self.active_frame, text=f"Welcome, {user['username']}!", font=("Helvetica", 14)).pack(pady=10)
+            tk.Label(self.active_frame, text=f"Welcome, {user['full_name']}!", font=("Helvetica", 14)).pack(pady=10)
 
             tk.Button(self.active_frame, text="Encrypt File", width=30, command=self.encrypt_file).pack(pady=5)
             tk.Button(self.active_frame, text="Decrypt File", width=30, command=self.decrypt_file).pack(pady=5)
@@ -72,7 +72,7 @@ class MainWindow:
     def logout(self):
         user = session.get_user()
         session.logout_user()
-        messagebox.showinfo("Logout", f"User '{user['username']}' logged out.")
+        messagebox.showinfo("Logout", f"User '{user['email']}' logged out.")
         self.show_welcome_screen()
 
     def account_recovery(self):

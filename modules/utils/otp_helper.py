@@ -8,9 +8,9 @@ from modules.utils.db_helper import DB_PATH
 def generate_totp_secret():
     return pyotp.random_base32()
 
-def get_qr_image_uri(secret, username, issuer="Computer Security Project"):
+def get_qr_image_uri(secret, email, issuer="Computer Security Project"):
     totp = pyotp.TOTP(secret)
-    uri = totp.provisioning_uri(name=username, issuer_name=issuer)
+    uri = totp.provisioning_uri(name=email, issuer_name=issuer)
     return uri
 
 def generate_qr_image(uri):

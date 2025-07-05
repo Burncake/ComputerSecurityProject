@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkcalendar import DateEntry
 from PIL import ImageTk
 import re
 import pyotp
@@ -12,19 +13,31 @@ class RegisterFrame(tk.Frame):
     def __init__(self, master, back_callback):
         super().__init__(master)
         self.back_callback = back_callback
-        self.master.geometry("400x400")
+        self.master.geometry("400x580")
         self.pack()
 
         self.frame_form = tk.Frame(self)
         self.frame_form.pack()
 
-        tk.Label(self.frame_form, text="Username:").pack(pady=5)
-        self.entry_username = tk.Entry(self.frame_form, width=40)
-        self.entry_username.pack(pady=5)
-
         tk.Label(self.frame_form, text="Email:").pack(pady=5)
         self.entry_email = tk.Entry(self.frame_form, width=40)
         self.entry_email.pack(pady=5)
+
+        tk.Label(self.frame_form, text="Full Name:").pack(pady=5)
+        self.entry_full_name = tk.Entry(self.frame_form, width=40)
+        self.entry_full_name.pack(pady=5)
+
+        tk.Label(self.frame_form, text="Date of Birth:").pack(pady=5)
+        self.entry_dob = DateEntry(self.frame_form, width=40, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd')        
+        self.entry_dob.pack(pady=5)
+
+        tk.Label(self.frame_form, text="Phone:").pack(pady=5)
+        self.entry_phone = tk.Entry(self.frame_form, width=40)
+        self.entry_phone.pack(pady=5)
+
+        tk.Label(self.frame_form, text="Address:").pack(pady=5)
+        self.entry_address = tk.Entry(self.frame_form, width=40)
+        self.entry_address.pack(pady=5)
 
         tk.Label(self.frame_form, text="Passphrase:").pack(pady=5)
         self.entry_passphrase = tk.Entry(self.frame_form, width=40, show="*")
@@ -55,12 +68,15 @@ class RegisterFrame(tk.Frame):
             self.entry_confirm.config(show="*")
 
     def prepare_totp(self):
-        username = self.entry_username.get().strip()
         email = self.entry_email.get().strip()
+        full_name = self.entry_full_name.get().strip()
+        dob = self.entry_dob.get().strip()
+        phone = self.entry_phone.get().strip()
+        address = self.entry_address.get().strip()
         passphrase = self.entry_passphrase.get()
         confirm = self.entry_confirm.get()
 
-        if not username or not email or not passphrase or not confirm:
+        if not email or not full_name or not dob or not phone or not address or not passphrase or not confirm:
             messagebox.showerror("Error", "Please fill in all fields.")
             return
 
@@ -84,16 +100,19 @@ class RegisterFrame(tk.Frame):
             messagebox.showerror("Error", "Passphrase must contain at least one special character.")
             return
 
-        if user_exists(username):
-            messagebox.showerror("Error", f"Username '{username}' already exists.")
+        if user_exists(email):
+            messagebox.showerror("Error", f"User '{email}' already exists.")
             return
 
-        self.username = username
         self.email = email
+        self.full_name = full_name
+        self.dob = dob
+        self.phone = phone
+        self.address = address
         self.passphrase = passphrase
 
         self.totp_secret = generate_totp_secret()
-        uri = get_qr_image_uri(self.totp_secret, username)
+        uri = get_qr_image_uri(self.totp_secret, email)
         qr_img = generate_qr_image(uri)
         self.qr_image = ImageTk.PhotoImage(qr_img)
 
@@ -102,7 +121,7 @@ class RegisterFrame(tk.Frame):
 
     def show_qr_frame(self):
         self.frame_verify.pack_forget()
-        self.master.geometry("600x700")
+        self.master.geometry("600x740")
 
         for widget in self.frame_qr.winfo_children():
             widget.destroy()
@@ -137,7 +156,7 @@ class RegisterFrame(tk.Frame):
         self.frame_verify.pack()
 
     def back_to_form(self):
-        self.master.geometry("400x400")
+        self.master.geometry("400x580")
         self.frame_qr.pack_forget()
         self.frame_form.pack()
 
@@ -163,10 +182,19 @@ class RegisterFrame(tk.Frame):
         hash_b64, salt_b64 = hash_passphrase(self.passphrase)
 
         # Insert into DB
-        insert_user(self.username, self.email, hash_b64, salt_b64, self.totp_secret)
+        insert_user(
+            email=self.email,
+            full_name=self.full_name,
+            dob=self.dob,
+            phone=self.phone,
+            address=self.address,
+            passphrase_hash=hash_b64,
+            salt=salt_b64,
+            totp_secret=self.totp_secret
+        )
 
-        logger.log_info(f"User '{self.username}' registered successfully.")
-        messagebox.showinfo("Success", f"User '{self.username}' registered successfully!")        
+        logger.log_info(f"User '{self.email}' registered successfully.")
+        messagebox.showinfo("Success", f"User '{self.email}' registered successfully!")        
 
         self.back()
 

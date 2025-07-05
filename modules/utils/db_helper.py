@@ -11,8 +11,11 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        email TEXT,
+        email TEXT UNIQUE,
+        full_name TEXT,
+        dob TEXT,
+        phone TEXT,
+        address TEXT,
         passphrase_hash TEXT,
         salt TEXT,
         totp_secret TEXT,
@@ -23,46 +26,54 @@ def init_db():
     conn.commit()
     conn.close()
 
-def insert_user(username, email, passphrase_hash, salt, totp_secret):
+def insert_user(email, full_name, dob, phone, address, passphrase_hash, salt, totp_secret):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO users (username, email, passphrase_hash, salt, totp_secret)
-    VALUES (?, ?, ?, ?, ?)
-    """, (username, email, passphrase_hash, salt, totp_secret))
+    INSERT INTO users (email, full_name, dob, phone, address, passphrase_hash, salt, totp_secret)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (email, full_name, dob, phone, address, passphrase_hash, salt, totp_secret))
     conn.commit()
     conn.close()
 
-def user_exists(username):
+def user_exists(email):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
     result = cursor.fetchone()
     conn.close()
     return result is not None
 
-def get_user_auth_info(username):
+def get_user_full_name(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT full_name FROM users WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else None
+
+def get_user_auth_info(email):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         SELECT passphrase_hash, salt, totp_secret, fail_count, lock_until
         FROM users
-        WHERE username = ?
-    """, (username,))
+        WHERE email = ?
+    """, (email,))
     row = cursor.fetchone()
     conn.close()
     return row
 
-def update_fail_count(username, fail_count, lock_until=None):
+def update_fail_count(email, fail_count, lock_until=None):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE users
         SET fail_count = ?, lock_until = ?
-        WHERE username = ?
-    """, (fail_count, lock_until, username))
+        WHERE email = ?
+    """, (fail_count, lock_until, email))
     conn.commit()
     conn.close()
 
-def reset_fail_count(username):
-    update_fail_count(username, 0, None)
+def reset_fail_count(email):
+    update_fail_count(email, 0, None)
