@@ -13,19 +13,20 @@ def init_db():
         username TEXT UNIQUE,
         email TEXT,
         passphrase_hash TEXT,
-        salt TEXT
+        salt TEXT,
+        totp_secret TEXT
     )
     """)
     conn.commit()
     conn.close()
 
-def insert_user(username, email, passphrase_hash, salt):
+def insert_user(username, email, passphrase_hash, salt, totp_secret):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO users (username, email, passphrase_hash, salt)
-    VALUES (?, ?, ?, ?)
-    """, (username, email, passphrase_hash, salt))
+    INSERT INTO users (username, email, passphrase_hash, salt, totp_secret)
+    VALUES (?, ?, ?, ?, ?)
+    """, (username, email, passphrase_hash, salt, totp_secret))
     conn.commit()
     conn.close()
 

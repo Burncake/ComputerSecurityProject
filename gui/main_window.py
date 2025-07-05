@@ -1,11 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox
 from .register_window import RegisterWindow
+from .login_window import LoginWindow
 
 class MainWindow:
     def __init__(self, root):
         self.root = root
-        self.root.title("Computer Security Project 1")
+        self.root.title("Computer Security Project")
 
         # Window size
         self.root.geometry("400x500")
@@ -45,7 +46,7 @@ class MainWindow:
         RegisterWindow(self.root)
 
     def open_login(self):
-        messagebox.showinfo("Info", "Open Login Window")
+        LoginWindow(self.root)
 
     def encrypt_file(self):
         messagebox.showinfo("Info", "Encrypt File Window")
