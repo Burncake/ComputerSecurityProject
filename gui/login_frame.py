@@ -1,13 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox
-import sqlite3
 import base64
 import pyotp
 import time
+from datetime import datetime
 
 from modules.utils.db_helper import (
     user_exists,
-    DB_PATH,
     get_user_auth_info,
     update_fail_count,
     reset_fail_count,
@@ -68,11 +67,19 @@ class LoginFrame(tk.Frame):
             stored_hash_b64, salt_b64, totp_secret, fail_count, lock_until = row
 
             current_time = int(time.time())
-            if lock_until and current_time < lock_until:
-                minutes = int((lock_until - current_time) / 60) + 1
-                messagebox.showerror("Account Locked", f"Account is locked. Try again in {minutes} minutes.")
-                logger.log_warning(f"Login blocked for user '{username}'. Account is locked until {lock_until}.")
-                return
+            if lock_until:
+                if current_time < lock_until:
+                    minutes = int((lock_until - current_time) / 60) + 1
+                    lock_time_str = datetime.fromtimestamp(lock_until).strftime("%Y-%m-%d %H:%M:%S")
+                    messagebox.showerror("Account Locked", f"Account is locked. Try again in {minutes} minutes.")
+                    logger.log_warning(f"Login blocked for user '{username}'. Account is locked until {lock_time_str}.")
+                    return
+                else:
+                    # Lock expired → reset
+                    reset_fail_count(username)
+                    fail_count = 0
+                    lock_until = None
+                    logger.log_info(f"Lock expired for user '{username}'. fail_count reset.")
 
             salt = base64.b64decode(salt_b64)
             input_hash_b64, _ = hash_passphrase(passphrase, salt)
@@ -127,11 +134,19 @@ class LoginFrame(tk.Frame):
             _, _, _, fail_count, lock_until = row
 
             current_time = int(time.time())
-            if lock_until and current_time < lock_until:
-                minutes = int((lock_until - current_time) / 60) + 1
-                messagebox.showerror("Account Locked", f"Account is locked. Try again in {minutes} minutes.")
-                logger.log_warning(f"Login blocked for user '{self.username}'. Account is locked until {lock_until}.")
-                return
+            if lock_until:
+                if current_time < lock_until:
+                    minutes = int((lock_until - current_time) / 60) + 1
+                    lock_time_str = datetime.fromtimestamp(lock_until).strftime("%Y-%m-%d %H:%M:%S")
+                    messagebox.showerror("Account Locked", f"Account is locked. Try again in {minutes} minutes.")
+                    logger.log_warning(f"Login blocked for user '{self.username}'. Account is locked until {lock_time_str}.")
+                    return
+                else:
+                    # Lock expired → reset
+                    reset_fail_count(self.username)
+                    fail_count = 0
+                    lock_until = None
+                    logger.log_info(f"Lock expired for user '{self.username}'. fail_count reset.")
 
         if not otp:
             messagebox.showerror("Error", "Please enter the OTP.")
