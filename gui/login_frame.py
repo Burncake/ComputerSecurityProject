@@ -7,8 +7,8 @@ from datetime import datetime
 
 from modules.utils.db_helper import (
     user_exists,
-    get_user_full_name,
     get_user_auth_info,
+    get_user_profile,
     update_fail_count,
     reset_fail_count,
 )
@@ -160,8 +160,7 @@ class LoginFrame(tk.Frame):
             # Save session
             user_obj = {
                 "email": self.email,
-                "full_name": get_user_full_name(self.email),
-                "totp_secret": self.totp_secret
+                "full_name": get_user_profile(self.email)[0],
             }
             session.login_user(user_obj)
 

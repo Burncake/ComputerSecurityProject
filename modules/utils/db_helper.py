@@ -44,14 +44,6 @@ def user_exists(email):
     conn.close()
     return result is not None
 
-def get_user_full_name(email):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT full_name FROM users WHERE email = ?", (email,))
-    row = cursor.fetchone()
-    conn.close()
-    return row[0] if row else None
-
 def get_user_auth_info(email):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -77,3 +69,37 @@ def update_fail_count(email, fail_count, lock_until=None):
 
 def reset_fail_count(email):
     update_fail_count(email, 0, None)
+
+def get_user_profile(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT full_name, dob, phone, address
+        FROM users
+        WHERE email = ?
+    """, (email,))
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
+def update_user_profile(email, full_name, dob, phone, address):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE users
+        SET full_name = ?, dob = ?, phone = ?, address = ?
+        WHERE email = ?
+    """, (full_name, dob, phone, address, email))
+    conn.commit()
+    conn.close()
+
+def update_user_passphrase(email, passphrase_hash, salt):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE users
+        SET passphrase_hash = ?, salt = ?
+        WHERE email = ?
+    """, (passphrase_hash, salt, email))
+    conn.commit()
+    conn.close()
