@@ -1,4 +1,10 @@
+# Core cryptographic library for RSA and AES encryption
 pycryptodome==3.20.0
-pyotp==2.9.0
-qrcode==7.4.2
-pillow==10.3.0
+
+# Future features (currently planned but not implemented)
+pyotp==2.9.0           # For TOTP multi-factor authentication
+qrcode==7.4.2           # For QR code generation
+pillow==10.3.0          # For image processing and QR codes
+
+# Note: tkinter and sqlite3 are included with Python standard library
+# For Ubuntu/Debian users: sudo apt install python3-tk

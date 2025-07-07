@@ -1,0 +1,13 @@
+# Minimal requirements for RSA Key Management functionality
+# This file contains only the essential dependencies needed for the current implementation
+
+pycryptodome==3.20.0    # RSA key generation, AES encryption, PBKDF2, padding
+
+# System requirements (install via package manager):
+# - python3-tk (for GUI)
+# - python3 (3.8+ recommended)
+# - sqlite3 (usually included with Python)
+
+# Installation commands:
+# Ubuntu/Debian: sudo apt install python3-tk
+# pip install -r requirements-minimal.txt
