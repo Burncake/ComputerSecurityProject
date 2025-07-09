@@ -4,6 +4,7 @@ from modules.core import session
 from gui.register_frame import RegisterFrame
 from gui.login_frame import LoginFrame
 from gui.account_update_frame import AccountUpdateFrame
+from gui.key_management_frame import KeyManagementFrame
 
 class MainWindow:
     def __init__(self, root):
@@ -29,6 +30,7 @@ class MainWindow:
             tk.Label(self.active_frame, text=f"Welcome, {user['full_name']}!", font=("Helvetica", 14)).pack(pady=10)
 
             tk.Button(self.active_frame, text="Update Account", width=30, command=self.show_account_update).pack(pady=5)
+            tk.Button(self.active_frame, text="Key Management", width=30, command=self.show_key_management).pack(pady=5)
             tk.Button(self.active_frame, text="Encrypt File", width=30, command=self.encrypt_file).pack(pady=5)
             tk.Button(self.active_frame, text="Decrypt File", width=30, command=self.decrypt_file).pack(pady=5)
             tk.Button(self.active_frame, text="Digital Signature", width=30, command=self.sign_file).pack(pady=5)
@@ -59,6 +61,10 @@ class MainWindow:
     def show_account_update(self):
         self.clear_active_frame()
         self.active_frame = AccountUpdateFrame(self.root, self.show_welcome_screen)
+
+    def show_key_management(self):
+        self.clear_active_frame()
+        self.active_frame = KeyManagementFrame(self.root, self.show_welcome_screen)
 
     def encrypt_file(self):
         messagebox.showinfo("Info", "Encrypt functionality here.")
