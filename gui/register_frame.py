@@ -8,6 +8,7 @@ from modules.utils.db_helper import insert_user, user_exists
 from modules.utils.crypto_helper import hash_passphrase
 from modules.utils.otp_helper import generate_totp_secret, get_qr_image_uri, generate_qr_image
 from modules.utils import logger
+from gui.key_create_frame import KeyCreateFrame
 
 class RegisterFrame(tk.Frame):
     def __init__(self, master, back_callback):
@@ -196,7 +197,15 @@ class RegisterFrame(tk.Frame):
         logger.log_info(f"User '{self.email}' registered successfully.")
         messagebox.showinfo("Success", f"User '{self.email}' registered successfully!")        
 
-        self.back()
+        KeyCreateFrame(
+            master=self.master,
+            email=self.email,
+            passphrase_hash_b64=hash_b64,
+            back_callback=self.back_callback
+        )
+
+        self.pack_forget()
+        self.destroy()
 
     def back(self):
         self.pack_forget()

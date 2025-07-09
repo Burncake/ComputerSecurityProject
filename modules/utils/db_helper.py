@@ -1,6 +1,5 @@
 import sqlite3
 import os
-import time
 
 DB_PATH = os.path.join("data", "users.db")
 
@@ -21,6 +20,14 @@ def init_db():
         totp_secret TEXT,
         fail_count INTEGER DEFAULT 0,
         lock_until INTEGER DEFAULT NULL
+    )
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_keys (
+        email TEXT UNIQUE,
+        created_at INTEGER,
+        expire_at INTEGER,
+        FOREIGN KEY (email) REFERENCES users(email)
     )
     """)
     conn.commit()
@@ -101,5 +108,35 @@ def update_user_passphrase(email, passphrase_hash, salt):
         SET passphrase_hash = ?, salt = ?
         WHERE email = ?
     """, (passphrase_hash, salt, email))
+    conn.commit()
+    conn.close()
+
+def insert_user_key(email, created_at, expire_at):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO user_keys (email, created_at, expire_at)
+        VALUES (?, ?, ?)
+    """, (email, created_at, expire_at))
+    conn.commit()
+    conn.close()
+
+def get_user_key_info(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT created_at, expire_at FROM user_keys
+        WHERE email = ?
+    """, (email,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def delete_user_key(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        DELETE FROM user_keys WHERE email = ?
+    """, (email,))
     conn.commit()
     conn.close()
