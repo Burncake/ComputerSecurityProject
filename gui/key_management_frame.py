@@ -10,7 +10,12 @@ import qrcode
 from modules.utils.crypto_helper import hash_passphrase
 from gui.key_create_frame import KeyCreateFrame
 from modules.core import session
-from modules.utils.db_helper import get_user_key_info, get_user_auth_info, delete_user_key
+from modules.utils.db_helper import (
+    get_user_key_info,
+    get_user_auth_info,
+    delete_user_key,
+    calculate_key_expiration
+)
 from modules.utils.rsa_key_helper import (
     load_key_from_file,
     decrypt_private_key,
@@ -72,7 +77,7 @@ class KeyManagementFrame(tk.Frame):
 
         tk.Label(container, text=f"Fingerprint:\n{fingerprint}").pack(pady=10)
 
-        status, color = calculate_key_expiration(created_at)
+        status, color = calculate_key_expiration(created_at, self.email)
         tk.Label(container, text=f"Status: {status}", fg=color, font=("Helvetica", 12, "bold")).pack(pady=5)
         
         tk.Label(container, text=f"Created At: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(created_at))}").pack()
@@ -255,7 +260,7 @@ class KeyManagementFrame(tk.Frame):
             else:
                 created_at = 0
 
-            status, color = calculate_key_expiration(created_at)
+            status, color = calculate_key_expiration(created_at, key["email"])
             fingerprint = get_public_key_fingerprint(load_key_from_file(key["pub_path"], binary=True))
 
             frame = tk.Frame(container, relief=tk.RIDGE, bd=1, padx=5, pady=5)
@@ -382,17 +387,6 @@ class KeyManagementFrame(tk.Frame):
         KeyManagementFrame(self.master, self.back_callback)
 
 # Helper functions
-def calculate_key_expiration(create_at):
-    current_time = time.time()
-    expire_at = create_at + (90 * 24 * 60 * 60)  # 90 days
-    days_left = (expire_at - current_time) / (24 * 60 * 60)
-    if current_time > expire_at:
-        return "Expired", "red"
-    elif days_left < 10:
-        return f"Expiring in ({int(days_left)} days", "orange"
-    else:
-        return "Active", "green"
-    
 def save_other_public_key(my_email, other_email, public_key_pem):
     folder = f"data/keys/{my_email}/others"
     os.makedirs(folder, exist_ok=True)

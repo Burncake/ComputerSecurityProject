@@ -1,4 +1,5 @@
 import sqlite3
+import time
 import os
 
 DB_PATH = os.path.join("data", "users.db")
@@ -140,3 +141,22 @@ def delete_user_key(email):
     """, (email,))
     conn.commit()
     conn.close()
+
+def calculate_key_expiration(create_at, email):
+    row = get_user_key_info(email)
+    if not row:
+        return "Unknown", "red"
+    queried_create_at, _ = row
+    if queried_create_at != create_at:
+        return "Outdated", "red"
+    
+    current_time = time.time()
+    expire_at = create_at + (90 * 24 * 60 * 60)  # 90 days
+    days_left = (expire_at - current_time) / (24 * 60 * 60)
+    if current_time > expire_at:
+        return "Expired", "red"
+    elif days_left < 10:
+        return f"Expiring in ({int(days_left)} days", "orange"
+    else:
+        return "Active", "green"
+    

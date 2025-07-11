@@ -1,17 +1,24 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkcalendar import DateEntry
+import base64
+import pyotp
+import json
 import re
 from modules.core import session
+from modules.utils import logger
+from modules.utils.crypto_helper import hash_passphrase
 from modules.utils.db_helper import (
     get_user_profile,
     update_user_profile,
     update_user_passphrase,
     get_user_auth_info,
 )
-from modules.utils.crypto_helper import hash_passphrase
-from modules.utils import logger
-import pyotp
+from modules.utils.rsa_key_helper import (
+    derive_aes_key_from_hash,
+    decrypt_private_key,
+    encrypt_private_key,
+)
 
 class AccountUpdateFrame(tk.Frame):
     def __init__(self, master, back_callback):
@@ -162,7 +169,7 @@ class AccountUpdateFrame(tk.Frame):
         # Load user's TOTP secret
         row = get_user_auth_info(self.email)
         if row:
-            _, _, totp_secret, _, _ = row
+            stored_hash_b64, stored_salt_b64, totp_secret, _, _ = row
         else:
             messagebox.showerror("Error", "User data not found.")
             return
@@ -174,15 +181,48 @@ class AccountUpdateFrame(tk.Frame):
             logger.log_warning(f"Failed OTP verification during passphrase change for user '{self.email}'.")
             return
 
-        # Hash passphrase
-        hash_b64, salt_b64 = hash_passphrase(self.new_passphrase)
+        # Step 1: Decrypt private key with OLD passphrase
+        try:
+            # Load encrypted private key file
+            with open(f"data/keys/{self.email}/{self.email}_priv.enc", "r") as f:
+                enc_data = json.load(f)
 
-        update_user_passphrase(self.email, hash_b64, salt_b64)
+            old_salt = base64.b64decode(enc_data["salt"])
+            old_aes_key, _ = derive_aes_key_from_hash(stored_hash_b64, old_salt)
 
-        logger.log_info(f"User '{self.email}' changed passphrase successfully.")
-        messagebox.showinfo("Success", "Passphrase changed successfully.")
+            private_key_pem = decrypt_private_key(enc_data, old_aes_key)
 
+            if not private_key_pem:
+                messagebox.showerror("Error", "Failed to decrypt private key with old passphrase.")
+                return
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error reading private key: {e}")
+            return
+
+        # Step 2: Hash new passphrase
+        new_hash_b64, new_salt_b64 = hash_passphrase(self.new_passphrase)
+
+        # Step 3: Re-encrypt private key
+        new_aes_key, new_salt_enc = derive_aes_key_from_hash(new_hash_b64)
+        new_enc_data = encrypt_private_key(private_key_pem, new_aes_key, new_salt_enc)
+
+        # Step 4: Save new encrypted file
+        try:
+            priv_path = f"data/keys/{self.email}/{self.email}_priv.enc"
+            with open(priv_path, "w") as f:
+                json.dump(new_enc_data, f)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save re-encrypted private key: {e}")
+            return
+
+        # Step 5: Update DB with new passphrase
+        update_user_passphrase(self.email, new_hash_b64, new_salt_b64)
+
+        logger.log_info(f"User '{self.email}' changed passphrase successfully and re-encrypted private key.")
+        messagebox.showinfo("Success", "Passphrase changed and private key updated successfully.")
         self.back()
+
 
     def back_to_info(self):
         self.master.geometry("600x500")
