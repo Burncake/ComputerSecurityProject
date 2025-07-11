@@ -49,12 +49,12 @@ class KeyCreateFrame(tk.Frame):
         encrypted_data = encrypt_private_key(private_pem, aes_key, salt)
 
         # Save public key
-        os.makedirs("data/keys", exist_ok=True)
-        pub_path = f"data/keys/{self.email}_pub.pem"
+        os.makedirs(f"data/keys/{self.email}", exist_ok=True)
+        pub_path = f"data/keys/{self.email}/{self.email}_pub.pem"
         save_key_to_file(pub_path, public_pem)
 
         # Save encrypted private key
-        priv_path = f"data/keys/{self.email}_priv.enc"
+        priv_path = f"data/keys/{self.email}/{self.email}_priv.enc"
         with open(priv_path, "w") as f:
             json.dump(encrypted_data, f)
 

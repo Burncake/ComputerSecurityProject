@@ -2,12 +2,13 @@ import tkinter as tk
 from tkinter import messagebox
 import time
 from modules.core import session
-from modules.utils.db_helper import get_user_key_info, get_user_auth_info
+from modules.utils.db_helper import get_user_key_info, get_user_auth_info, delete_user_key
+from modules.utils.rsa_key_helper import delete_user_key_files
 from gui.register_frame import RegisterFrame
 from gui.login_frame import LoginFrame
 from gui.account_update_frame import AccountUpdateFrame
 from gui.key_create_frame import KeyCreateFrame
-from gui.key_mgmt_frame import KeyManagementFrame
+from gui.key_management_frame import KeyManagementFrame
 
 class MainWindow:
     def __init__(self, root):
@@ -32,6 +33,9 @@ class MainWindow:
 
             created_at, expire_at = row
             if time.time() > expire_at:
+                delete_user_key_files(email)
+                delete_user_key(email)
+                messagebox.showwarning("Key Expired", "Your RSA key has expired. Please create a new key.")
                 self.show_key_create(email)
                 return
 
@@ -41,7 +45,7 @@ class MainWindow:
         tk.Label(self.active_frame, text="Computer Security System", font=("Helvetica", 16, "bold")).pack(pady=20)
 
         if session.is_logged_in():
-            self.root.geometry("600x600")
+            self.root.geometry("600x500")
             user = session.get_user()
             tk.Label(self.active_frame, text=f"Welcome, {user['full_name']}!", font=("Helvetica", 14)).pack(pady=10)
 

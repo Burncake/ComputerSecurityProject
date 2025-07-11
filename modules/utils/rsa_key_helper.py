@@ -2,6 +2,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Protocol.KDF import PBKDF2
+import os
 import base64
 import hashlib
 
@@ -65,6 +66,14 @@ def load_key_from_file(path, binary=False):
     mode = "rb" if binary else "r"
     with open(path, mode) as f:
         return f.read()
+    
+def delete_user_key_files(email):
+    base = f"data/keys/{email}/{email}"
+    for suffix in ["_pub.pem", "_priv.enc"]:
+        try:
+            os.remove(base + suffix)
+        except FileNotFoundError:
+            pass
 
 def get_public_key_fingerprint(public_key_pem):
     sha256 = hashlib.sha256(public_key_pem).hexdigest()

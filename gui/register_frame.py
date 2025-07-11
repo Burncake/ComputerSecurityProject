@@ -114,7 +114,7 @@ class RegisterFrame(tk.Frame):
 
         self.totp_secret = generate_totp_secret()
         uri = get_qr_image_uri(self.totp_secret, email)
-        qr_img = generate_qr_image(uri)
+        qr_img = generate_qr_image(uri).resize((250, 250))
         self.qr_image = ImageTk.PhotoImage(qr_img)
 
         self.frame_form.pack_forget()
@@ -122,7 +122,7 @@ class RegisterFrame(tk.Frame):
 
     def show_qr_frame(self):
         self.frame_verify.pack_forget()
-        self.master.geometry("600x740")
+        self.master.geometry("400x425")
 
         for widget in self.frame_qr.winfo_children():
             widget.destroy()

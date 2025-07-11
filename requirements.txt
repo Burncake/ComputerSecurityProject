@@ -3,3 +3,4 @@ pyotp==2.9.0
 qrcode==7.4.2
 pillow==10.3.0
 tkcalendar==1.6.1
+pyzbar==0.1.8
