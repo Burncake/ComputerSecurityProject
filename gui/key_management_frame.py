@@ -31,7 +31,13 @@ class KeyManagementFrame(tk.Frame):
         self.master = master
         self.back_callback = back_callback
         self.pack()
-        self.master.geometry("800x500")
+        self.master.geometry("650x450")
+
+        # Minimal styling
+        style = ttk.Style()
+        style.configure("TButton", font=("Helvetica", 10), padding=6)
+        style.configure("TLabel", font=("Helvetica", 10))
+        style.configure("TNotebook.Tab", font=("Helvetica", 11, "bold"), padding=[10, 5])
 
         if not session.is_logged_in():
             messagebox.showerror("Error", "You must be logged in to access this feature.")
@@ -40,7 +46,7 @@ class KeyManagementFrame(tk.Frame):
 
         self.email = session.get_user()['email']
 
-        notebook = ttk.Notebook(self)
+        notebook = ttk.Notebook(self, width=600)
         notebook.pack(fill="both", expand=True)
 
         frame_mykey = tk.Frame(notebook)
@@ -245,12 +251,27 @@ class KeyManagementFrame(tk.Frame):
     # TAB 2 - PUBLIC KEYS
     # =======================
     def build_public_key_tab(self, container):
-        tk.Label(container, text="Public Keys Imported", font=("Helvetica", 14)).pack(pady=10)
+        # Create a canvas and scrollbar for scrollable area
+        canvas = tk.Canvas(container)
+        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        tk.Label(scrollable_frame, text="Public Keys Imported", font=("Helvetica", 14)).pack(pady=10)
 
         keys = load_other_public_keys(self.email)
 
         if not keys:
-            tk.Label(container, text="No imported keys yet.").pack()
+            tk.Label(scrollable_frame, text="No imported keys yet.").pack()
             return
 
         for key in keys:
@@ -264,7 +285,7 @@ class KeyManagementFrame(tk.Frame):
             status, color = calculate_key_expiration(created_at, key["email"])
             fingerprint = get_public_key_fingerprint(load_key_from_file(key["pub_path"], binary=True))
 
-            frame = tk.Frame(container, relief=tk.RIDGE, bd=1, padx=5, pady=5)
+            frame = tk.Frame(scrollable_frame, relief=tk.RIDGE, bd=1, padx=5, pady=5)
             frame.pack(fill="x", padx=5, pady=3)
 
             tk.Label(frame, text=f"Email: {key['email']}", font=("Helvetica", 10, "bold")).grid(row=0, column=0, sticky="w")
