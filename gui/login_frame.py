@@ -76,7 +76,7 @@ class LoginFrame(tk.Frame):
                     logger.log_warning(f"Login blocked for user '{email}'. Account is locked until {lock_time_str}.")
                     return
                 else:
-                    # Lock expired → reset
+                    # Lock expired -> reset
                     reset_fail_count(email)
                     fail_count = 0
                     lock_until = None
@@ -143,7 +143,7 @@ class LoginFrame(tk.Frame):
                     logger.log_warning(f"Login blocked for user '{self.email}'. Account is locked until {lock_time_str}.")
                     return
                 else:
-                    # Lock expired → reset
+                    # Lock expired -> reset
                     reset_fail_count(self.email)
                     fail_count = 0
                     lock_until = None

@@ -9,6 +9,8 @@ from gui.login_frame import LoginFrame
 from gui.account_update_frame import AccountUpdateFrame
 from gui.key_create_frame import KeyCreateFrame
 from gui.key_management_frame import KeyManagementFrame
+from gui.encrypt_frame import EncryptFrame
+from gui.decrypt_frame import DecryptFrame
 
 class MainWindow:
     def __init__(self, root):
@@ -87,10 +89,12 @@ class MainWindow:
         self.active_frame = KeyManagementFrame(self.root, self.show_welcome_screen)
 
     def encrypt_file(self):
-        messagebox.showinfo("Info", "Encrypt functionality here.")
+        self.clear_active_frame()
+        self.active_frame = EncryptFrame(self.root, self.show_welcome_screen)
 
     def decrypt_file(self):
-        messagebox.showinfo("Info", "Decrypt functionality here.")
+        self.clear_active_frame()
+        self.active_frame = DecryptFrame(self.root, self.show_welcome_screen)
 
     def sign_file(self):
         messagebox.showinfo("Info", "Sign functionality here.")

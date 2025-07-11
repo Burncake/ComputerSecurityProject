@@ -64,7 +64,7 @@ class KeyCreateFrame(tk.Frame):
         insert_user_key(self.email, created_at, expire_at)
 
         # Log
-        logger.log_info(f"User '{self.email}' created RSA key pair.")
+        logger.log_info(f"User '{self.email}' generated RSA key pair")
 
         # Switch to success frame
         self.show_success_frame(public_pem, created_at, expire_at)

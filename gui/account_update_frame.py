@@ -26,11 +26,9 @@ class AccountUpdateFrame(tk.Frame):
         self.back_callback = back_callback
         self.master.geometry("600x500")
         self.pack()
-
-        # Lấy email user đang login
         self.email = session.get_user()['email']
 
-        # Load dữ liệu user
+        # Load user profile data
         user_data = get_user_profile(self.email)
         if user_data:
             full_name, dob, phone, address = user_data

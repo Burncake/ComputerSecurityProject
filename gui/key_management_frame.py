@@ -10,6 +10,7 @@ import qrcode
 from modules.utils.crypto_helper import hash_passphrase
 from gui.key_create_frame import KeyCreateFrame
 from modules.core import session
+from modules.utils import logger
 from modules.utils.db_helper import (
     get_user_key_info,
     get_user_auth_info,
@@ -173,7 +174,7 @@ class KeyManagementFrame(tk.Frame):
             user_input = entry.get()
             row = get_user_auth_info(self.email)
             if not row:
-                messagebox.showerror("Error", "User info not found.")
+                messagebox.showerror("Error", "User info not found. Please log in again.")
                 win.destroy()
                 return
 
@@ -394,6 +395,9 @@ def save_other_public_key(my_email, other_email, public_key_pem):
 
     if os.path.exists(path):
         messagebox.showwarning("Warning", f"Public key for {other_email} already exists. Overwriting.")
+        logger.log_info(f"User '{my_email}' overwrote existing public key of {other_email}.")
+    else:
+        logger.log_info(f"User '{my_email}' saved new public key of {other_email}.")
 
     with open(path, "wb") as f:
         f.write(public_key_pem)

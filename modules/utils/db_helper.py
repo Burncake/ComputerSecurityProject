@@ -133,6 +133,14 @@ def get_user_key_info(email):
     conn.close()
     return row
 
+def get_user_key_list():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT email FROM user_keys")
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
 def delete_user_key(email):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
