@@ -1,7 +1,9 @@
-import tkinter
-from Crypto.PublicKey import RSA
-import pyotp
-import qrcode
-from PIL import Image
+from modules.utils.db_helper import init_db
+import tkinter as tk
+from gui.main_window import MainWindow
 
-print("OK! All packages imported successfully.")
+if __name__ == "__main__":
+    init_db()
+    root = tk.Tk()
+    app = MainWindow(root)
+    root.mainloop()
