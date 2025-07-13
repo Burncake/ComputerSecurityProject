@@ -275,14 +275,7 @@ class KeyManagementFrame(tk.Frame):
             return
 
         for key in keys:
-            # Get created_at from DB
-            row = get_user_key_info(key["email"])
-            if row:
-                created_at, _ = row
-            else:
-                created_at = 0
-
-            status, color = calculate_key_expiration(created_at, key["email"])
+            status, color = calculate_key_expiration(key["created_at"], key["email"])
             fingerprint = get_public_key_fingerprint(load_key_from_file(key["pub_path"], binary=True))
 
             frame = tk.Frame(scrollable_frame, relief=tk.RIDGE, bd=1, padx=5, pady=5)
@@ -413,6 +406,8 @@ def save_other_public_key(my_email, other_email, public_key_pem):
     folder = f"data/keys/{my_email}/others"
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, f"{other_email}_pub.pem")
+    meta_path = os.path.join(folder, f"{other_email}_meta.json")
+    created_at, _ = get_user_key_info(other_email)
 
     if os.path.exists(path):
         messagebox.showwarning("Warning", f"Public key for {other_email} already exists. Overwriting.")
@@ -422,6 +417,9 @@ def save_other_public_key(my_email, other_email, public_key_pem):
 
     with open(path, "wb") as f:
         f.write(public_key_pem)
+
+    with open(meta_path, "w") as f:
+        json.dump({"created_at": created_at}, f)
 
 def load_other_public_keys(my_email):
     folder = f"data/keys/{my_email}/others"
