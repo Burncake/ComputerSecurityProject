@@ -5,6 +5,7 @@ import json
 import base64
 from modules.core import session
 from modules.utils import logger
+from modules.utils.crypto_helper import hash_passphrase
 from modules.utils.file_crypto_helper import decrypt_file_for_user
 from modules.utils.db_helper import get_user_auth_info
 from modules.utils.rsa_key_helper import derive_aes_key_from_hash, decrypt_private_key
@@ -81,6 +82,10 @@ class DecryptFrame(tk.Frame):
         if not enc or not os.path.isfile(enc):
             messagebox.showerror("Error", "Please choose a valid .enc file.")
             return
+        
+        if not pw:
+            messagebox.showerror("Error", "Please enter your passphrase.")
+            return
 
         # 2. Detect if .enc file is in combined mode or separate mode
         try:
@@ -106,7 +111,12 @@ class DecryptFrame(tk.Frame):
         if not row:
             messagebox.showerror("Error", "User info not found. Please log in again.")
             return
-        stored_hash_b64, stored_salt_b64, totp_secret, _, _ = row
+        stored_hash_b64, salt_b64, *_ = row
+        input_hash_b64, _ = hash_passphrase(pw, base64.b64decode(salt_b64))
+        if input_hash_b64 != stored_hash_b64:
+            logger.log_warning(f"Failed decryption attempt for user '{self.email}' with wrong passphrase.")
+            messagebox.showerror("Error", "Invalid passphrase.")
+            return
 
         # Decrypt private key file
         try:
@@ -143,6 +153,7 @@ class DecryptFrame(tk.Frame):
                 key_path=key,
                 output_filepath=out
             )
+            logger.log_info(f"User '{self.email}' successfully decrypted file: {decrypted_path}")
             messagebox.showinfo("Success", f"File decrypted to:\n{decrypted_path}")
             self.back_callback()
         except FileNotFoundError as e:
