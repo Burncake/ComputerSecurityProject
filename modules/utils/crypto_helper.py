@@ -10,3 +10,6 @@ def hash_passphrase(passphrase, salt=None):
     hash_b64 = base64.b64encode(hash_value).decode()
     salt_b64 = base64.b64encode(salt).decode()
     return hash_b64, salt_b64
+
+def hash_recovery_code(code):
+    return base64.b64encode(hashlib.sha256(code.encode()).digest()).decode()

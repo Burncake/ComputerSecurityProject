@@ -1,6 +1,7 @@
 import sqlite3
 import time
 import os
+from modules.utils.crypto_helper import hash_passphrase
 
 DB_PATH = os.path.join("data", "users.db")
 
@@ -28,6 +29,14 @@ def init_db():
         email TEXT UNIQUE,
         created_at INTEGER,
         expire_at INTEGER,
+        FOREIGN KEY (email) REFERENCES users(email)
+    )
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_recovery (
+        email TEXT UNIQUE,
+        recovery_code_hash TEXT,
+        created_at INTEGER,
         FOREIGN KEY (email) REFERENCES users(email)
     )
     """)
@@ -112,6 +121,13 @@ def update_user_passphrase(email, passphrase_hash, salt):
     conn.commit()
     conn.close()
 
+def update_user_totp(email, new_secret):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("UPDATE users SET totp_secret = ? WHERE email = ?", (new_secret, email))
+    conn.commit()
+    conn.close()
+
 def insert_user_key(email, created_at, expire_at):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -168,3 +184,24 @@ def calculate_key_expiration(create_at, email):
     else:
         return "Active", "green"
     
+def save_recovery_code(email, recovery_code_hash):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT OR REPLACE INTO user_recovery (email, recovery_code_hash)
+        VALUES (?, ?)
+    """, (email, recovery_code_hash))
+    conn.commit()
+    conn.close()
+
+def get_recovery_code_hash(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT recovery_code_hash
+        FROM user_recovery
+        WHERE email = ?
+    """, (email,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else None

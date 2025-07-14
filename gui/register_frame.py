@@ -4,8 +4,9 @@ from tkcalendar import DateEntry
 from PIL import ImageTk
 import re
 import pyotp
-from modules.utils.db_helper import insert_user, user_exists
-from modules.utils.crypto_helper import hash_passphrase
+import secrets
+from modules.utils.db_helper import insert_user, user_exists, save_recovery_code
+from modules.utils.crypto_helper import hash_passphrase, hash_recovery_code
 from modules.utils.otp_helper import generate_totp_secret, get_qr_image_uri, generate_qr_image
 from modules.utils import logger
 from gui.key_create_frame import KeyCreateFrame
@@ -59,6 +60,8 @@ class RegisterFrame(tk.Frame):
         self.frame_qr = tk.Frame(self)
         # Verify frame
         self.frame_verify = tk.Frame(self)
+        # Recovery frame
+        self.frame_recovery = tk.Frame(self)
 
     def toggle_passphrase(self):
         if self.show_var.get():
@@ -127,7 +130,7 @@ class RegisterFrame(tk.Frame):
         for widget in self.frame_qr.winfo_children():
             widget.destroy()
 
-        tk.Label(self.frame_qr, text="Scan this QR code in your Authenticator app.").pack(pady=10)
+        tk.Label(self.frame_qr, text="Scan this QR code with your Authenticator app.").pack(pady=10)
         tk.Label(self.frame_qr, image=self.qr_image).pack()
 
         tk.Button(self.frame_qr, text="Next: Verify OTP", command=self.show_verify_frame).pack(pady=20)
@@ -181,6 +184,7 @@ class RegisterFrame(tk.Frame):
 
         # Hash passphrase
         hash_b64, salt_b64 = hash_passphrase(self.passphrase)
+        self.hash_b64 = hash_b64
 
         # Insert into DB
         insert_user(
@@ -195,17 +199,53 @@ class RegisterFrame(tk.Frame):
         )
 
         logger.log_info(f"User '{self.email}' registered successfully.")
-        messagebox.showinfo("Success", f"User '{self.email}' registered successfully!")        
+        messagebox.showinfo("Success", f"User '{self.email}' registered successfully!")
+
+        recovery_code = secrets.token_urlsafe(24)
+        recovery_hash = hash_recovery_code(recovery_code)
+        save_recovery_code(self.email, recovery_hash)
+        
+        logger.log_info(f"Recovery code for '{self.email}' saved successfully.")
+
+        self.recovery_code = recovery_code
+        self.frame_verify.pack_forget()
+        self.show_recovery_frame()
+        
+    def show_recovery_frame(self):
+        self.frame_recovery = tk.Frame(self)
+        self.frame_recovery.pack(pady=20)
+
+        tk.Label(self.frame_recovery,
+                 text="Your Recovery Code\n(please copy and store securely)",
+                 font=("Helvetica", 12), justify="center").pack(pady=10)
+
+        # Entry readonly chứa code
+        self.entry_recovery = tk.Entry(self.frame_recovery, width=40, justify="center")
+        self.entry_recovery.insert(0, self.recovery_code)
+        self.entry_recovery.config(state="readonly")
+        self.entry_recovery.pack(pady=5)
+
+        # Copy button
+        def do_copy():
+            self.master.clipboard_clear()
+            self.master.clipboard_append(self.recovery_code)
+            messagebox.showinfo("Copied", "Recovery code copied to clipboard.")
+
+        tk.Button(self.frame_recovery, text="Copy", command=do_copy).pack(pady=5)
+
+        # Done button
+        tk.Button(self.frame_recovery, text="Done", command=self.finish_registration).pack(pady=10)
+
+    def finish_registration(self):
+        self.pack_forget()
+        self.destroy()
 
         KeyCreateFrame(
             master=self.master,
             email=self.email,
-            passphrase_hash_b64=hash_b64,
+            passphrase_hash_b64=self.hash_b64,
             back_callback=self.back_callback
         )
-
-        self.pack_forget()
-        self.destroy()
 
     def back(self):
         self.pack_forget()

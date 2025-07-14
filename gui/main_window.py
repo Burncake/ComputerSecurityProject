@@ -13,6 +13,7 @@ from gui.encrypt_frame import EncryptFrame
 from gui.decrypt_frame import DecryptFrame
 from gui.signature_frame import SignFrame
 from gui.verify_frame import VerifyFrame
+from gui.recover_account_frame import RecoverAccountFrame
 
 class MainWindow:
     def __init__(self, root):
@@ -116,7 +117,8 @@ class MainWindow:
         self.show_welcome_screen()
 
     def account_recovery(self):
-        messagebox.showinfo("Info", "Account recovery window.")
+        self.clear_active_frame()
+        self.active_frame = RecoverAccountFrame(self.root, self.show_welcome_screen)
 
     def show_key_create(self, email):
         # Lấy passphrase_hash từ DB

@@ -221,7 +221,6 @@ class AccountUpdateFrame(tk.Frame):
         messagebox.showinfo("Success", "Passphrase changed and private key updated successfully.")
         self.back()
 
-
     def back_to_info(self):
         self.master.geometry("600x500")
         self.frame_change_pass.pack_forget()
