@@ -14,6 +14,7 @@ from gui.decrypt_frame import DecryptFrame
 from gui.signature_frame import SignFrame
 from gui.verify_frame import VerifyFrame
 from gui.recover_account_frame import RecoverAccountFrame
+from gui.admin_dashboard import AdminDashboardFrame
 
 class MainWindow:
     def __init__(self, root):
@@ -60,7 +61,8 @@ class MainWindow:
             tk.Button(self.active_frame, text="Decrypt File", width=30, command=self.decrypt_file).pack(pady=5)
             tk.Button(self.active_frame, text="Sign File", width=30, command=self.sign_file).pack(pady=5)
             tk.Button(self.active_frame, text="Verify Signature", width=30, command=self.verify_signature).pack(pady=5)
-            tk.Button(self.active_frame, text="Admin Dashboard", width=30, command=self.open_admin_dashboard).pack(pady=5)
+            if user['role'] == 'admin':
+                tk.Button(self.active_frame, text="Admin Dashboard", width=30, command=self.open_admin_dashboard).pack(pady=5)
             tk.Button(self.active_frame, text="Logout", width=30, command=self.logout).pack(pady=20)
         else:
             self.root.geometry("400x300")
@@ -108,7 +110,8 @@ class MainWindow:
         self.active_frame = VerifyFrame(self.root, self.show_welcome_screen)
 
     def open_admin_dashboard(self):
-        messagebox.showinfo("Info", "Admin Dashboard here.")
+        self.clear_active_frame()
+        self.active_frame = AdminDashboardFrame(self.root, self.show_welcome_screen)
 
     def logout(self):
         user = session.get_user()

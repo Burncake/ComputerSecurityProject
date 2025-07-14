@@ -40,6 +40,20 @@ def init_db():
         FOREIGN KEY (email) REFERENCES users(email)
     )
     """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_roles (
+        email TEXT UNIQUE,
+        role TEXT NOT NULL CHECK(role IN ('user', 'admin')),
+        FOREIGN KEY (email) REFERENCES users(email)
+    )
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS account_lock (
+        email TEXT UNIQUE,
+        locked INTEGER NOT NULL CHECK(locked IN (0, 1)),
+        FOREIGN KEY (email) REFERENCES users(email)
+    )
+    """)
     conn.commit()
     conn.close()
 
@@ -50,6 +64,12 @@ def insert_user(email, full_name, dob, phone, address, passphrase_hash, salt, to
     INSERT INTO users (email, full_name, dob, phone, address, passphrase_hash, salt, totp_secret)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (email, full_name, dob, phone, address, passphrase_hash, salt, totp_secret))
+    cursor.execute("""
+    INSERT INTO user_roles (email, role) VALUES (?, 'user')
+    """, (email,))
+    cursor.execute("""
+    INSERT INTO account_lock (email, locked) VALUES (?, 0)
+    """, (email,))
     conn.commit()
     conn.close()
 
@@ -205,3 +225,56 @@ def get_recovery_code_hash(email):
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else None
+
+def promote_to_admin(email):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT OR REPLACE INTO user_roles(email, role) VALUES (?, 'admin')", (email,))
+    conn.commit()
+    conn.close()
+
+def demote_to_user(email):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT OR REPLACE INTO user_roles(email, role) VALUES (?, 'user')", (email,))
+    conn.commit()
+    conn.close()
+
+def get_all_roles():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT email, role FROM user_roles")
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+def get_user_role(email):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT role FROM user_roles WHERE email = ?", (email,))
+    row = c.fetchone()
+    conn.close()
+    return row[0] if row else 'user'
+
+def set_account_lock(email, locked: bool):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT OR REPLACE INTO account_lock(email, locked) VALUES (?, ?)", (email, int(locked)))
+    conn.commit()
+    conn.close()
+
+def is_account_locked(email):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT locked FROM account_lock WHERE email = ?", (email,))
+    row = c.fetchone()
+    conn.close()
+    return bool(row[0]) if row else False
+
+def get_all_locks():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT email, locked FROM account_lock")
+    rows = c.fetchall()
+    conn.close()
+    return rows

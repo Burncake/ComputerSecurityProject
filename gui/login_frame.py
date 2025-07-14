@@ -4,17 +4,18 @@ import base64
 import pyotp
 import time
 from datetime import datetime
-
+from modules.core import session
+from modules.utils import logger
 from modules.utils.db_helper import (
     user_exists,
     get_user_auth_info,
     get_user_profile,
     update_fail_count,
     reset_fail_count,
+    get_user_role,
 )
 from modules.utils.crypto_helper import hash_passphrase
-from modules.core import session
-from modules.utils import logger
+from modules.utils.db_helper import is_account_locked
 
 class LoginFrame(tk.Frame):
     def __init__(self, master, back_callback):
@@ -61,6 +62,10 @@ class LoginFrame(tk.Frame):
 
         if not user_exists(email):
             messagebox.showerror("Error", f"User '{email}' does not exist.")
+            return
+        
+        if is_account_locked(email):
+            messagebox.showerror("Error", "Your account has been locked by an administrator.")
             return
 
         row = get_user_auth_info(email)
@@ -161,6 +166,7 @@ class LoginFrame(tk.Frame):
             user_obj = {
                 "email": self.email,
                 "full_name": get_user_profile(self.email)[0],
+                "role": get_user_role(self.email)
             }
             session.login_user(user_obj)
 
