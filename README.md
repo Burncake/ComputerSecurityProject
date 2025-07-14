@@ -254,8 +254,9 @@ python main.py
 
 #### File Decryption  
 1. Navigate to **Decrypt** tab
-2. Select encrypted file and provide your private key passphrase if required
-3. Decrypted file is restored to original format
+2. Select encrypted file and corresponding key file (if separate)
+3. Provide your private key passphrase
+4. Decrypted file is restored to original format
 
 #### Digital Signatures
 1. Navigate to **Sign** tab  
@@ -264,7 +265,7 @@ python main.py
 
 #### Signature Verification
 1. Navigate to **Verify** tab
-2. Select document and corresponding signature file (ensure public key is imported)
+2. Select document and corresponding signature file (ensure public key is imported and active)
 3. System verifies authenticity and integrity
 
 ### Administrative Functions
