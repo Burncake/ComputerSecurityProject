@@ -1,179 +1,406 @@
-# Computer Security Project 1
+# Computer Security Project
 
-## Project Description
+A comprehensive desktop cryptography application built with Python and Tkinter, implementing modern security practices for user authentication, key management, file encryption, and digital signatures.
 
-This project simulates a secure system including:
+## 🔐 Project Overview
 
-* User registration and login with password hashing and salting (PBKDF2 + SHA256)
-* RSA key management (2048-bit) with automatic expiration (90 days)
-* Private key encryption using AES-256-CBC derived from passphrase
-* Public key storage with email association and creation timestamps
-* Key status monitoring and expiration warnings
-* PEM file export functionality for keys
-* Multi-factor authentication (MFA) with TOTP (planned)
-* Encryption and decryption of files (AES + RSA hybrid encryption) (planned)
-* Digital signature and verification (planned)
-* Account management and recovery (planned)
-* Admin functionalities and logging (planned)
+This project is a **complete cryptographic security system** that demonstrates real-world security implementations including:
 
-## Technology Stack
+### Core Features ✅ **IMPLEMENTED**
+* **User Authentication System** - Secure registration and login with SHA256 hashing
+* **RSA Key Management** - 2048-bit key generation with AES-256-GCM encryption
+* **File Encryption/Decryption** - Hybrid AES+RSA encryption for secure file storage
+* **Digital Signatures** - PSS padding with SHA-256 for document authentication
+* **Multi-Factor Authentication** - TOTP-based MFA with QR code generation
+* **Account Recovery** - Secure recovery code system
+* **Admin Dashboard** - User management, role assignment, and system monitoring
+* **Security Logging** - Comprehensive audit trail with structured logging
+* **Key Expiration Management** - Automatic 90-day key lifecycle with renewal alerts
+* **Account Lockout Protection** - Failed login attempt tracking and temporary lockouts
+* **Session Management** - Secure session handling with automatic timeouts
+* **Role-Based Access Control** - User and admin privilege separation
+* **Secure File Storage** - Encrypted private key storage with passphrase protection
 
-* Python 3.12.10
-* Tkinter for GUI
-* SQLite3 for database
-* pycryptodome for RSA and AES cryptography
-* PBKDF2 for key derivation
-* Base64 encoding for key storage
-* pyotp for TOTP (planned)
-* qrcode for QR code generation (planned)
-* pillow for image processing (planned)
+## 🏗️ Architecture & Technology Stack
 
-## Project Structure
+### Core Technologies
+- **Python 3.12+** - Main application language
+- **Tkinter** - Cross-platform GUI framework
+- **SQLite3** - Embedded database for user and key management
+- **pycryptodome** - RSA and AES cryptographic operations
+- **cryptography** - Digital signatures and advanced crypto functions
+- **pyotp** - Time-based One-Time Password (TOTP) implementation
+- **qrcode + Pillow** - QR code generation for MFA setup
+
+### Security Architecture
+```
+┌───────────────────────────┐    ┌──────────────────────────┐
+│    GUI Layer (Tkinter)    │    │    Session Management    │
+│  ┌─────────────────────┐  │    │   ┌──────────────────┐   │
+│  │ Login │ Register    │  │    │   │ User State       │   │
+│  │ Keys  │ Files       │  │◄──►│   │ Auth Status      │   │
+│  │ Admin │ Recovery    │  │    │   │ Role Permissions │   │
+│  └─────────────────────┘  │    │   └──────────────────┘   │
+└───────────────────────────┘    └──────────────────────────┘
+            │                                  │
+            ▼                                  ▼
+┌───────────────────────────────────────────────────────────┐
+│                  Core Business Logic                      │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐  │
+│  │   Crypto    │ │   Database  │ │   File Operations   │  │
+│  │   Helpers   │ │   Helpers   │ │      & Logging      │  │
+│  └─────────────┘ └─────────────┘ └─────────────────────┘  │
+└───────────────────────────────────────────────────────────┘
+            │                                  │
+            ▼                                  ▼
+┌───────────────────────┐         ┌───────────────────────────┐
+│    SQLite Database    │         │    File System Storage    │
+│  ┌─────────────────┐  │         │  ┌─────────────────────┐  │
+│  │ users           │  │         │  │ data/keys/          │  │
+│  │ user_keys       │  │         │  │ data/logs/          │  │
+│  │ user_recovery   │  │         │  │ encrypted files     │  │
+│  │ user_roles      │  │         │  │ digital signatures  │  │
+│  │ account_lock    │  │         │  └─────────────────────┘  │
+│  └─────────────────┘  │         └───────────────────────────┘
+└───────────────────────┘
+```
+
+### Database Schema
+```sql
+-- Core user authentication and profile data
+users: id, email, full_name, dob, phone, address, passphrase_hash, 
+       salt, totp_secret, fail_count, lock_until
+
+-- RSA key lifecycle management  
+user_keys: email, created_at, expire_at
+
+-- Account recovery system
+user_recovery: email, recovery_code_hash, created_at
+
+-- Role-based access control
+user_roles: email, role [user|admin]
+
+-- Account security controls
+account_lock: email, locked [0|1]
+```
+
+## 📁 Project Structure
 
 ```
-/COMPUTER_SECURITY_PROJECT
-├── main.py                     # Main application entry point
-├── requirements.txt            # Python dependencies
-├── test_rsa.py                # RSA functionality tests
-├── gui/
-│   ├── main_window.py         # Main application window
-│   ├── login_window.py        # User login interface
-│   ├── register_window.py     # User registration interface
-│   └── key_management_window.py # RSA key management interface
+ComputerSecurityProject/
+├── main.py                         # Application entry point
+├── requirements.txt                # Python dependencies
+├── setup.sh                        # Linux/macOS setup script  
+├── CHANGELOG.md                    # Version history
+├── README.md                       # This documentation
+│
+├── gui/                            # Tkinter GUI components
+│   ├── main_window.py              # Main application window & navigation
+│   ├── login_frame.py              # User authentication interface
+│   ├── register_frame.py           # New user registration
+│   ├── key_create_frame.py         # RSA key generation interface
+│   ├── key_management_frame.py     # Key lifecycle management
+│   ├── encrypt_frame.py            # File encryption interface
+│   ├── decrypt_frame.py            # File decryption interface
+│   ├── signature_frame.py          # Digital signature creation
+│   ├── verify_frame.py             # Signature verification
+│   ├── account_update_frame.py     # Profile and security settings
+│   ├── recover_account_frame.py    # Account recovery workflow
+│   └── admin_dashboard.py          # Administrative functions
+│
 ├── modules/
-│   ├── auth/
-│   │   ├── __init__.py
-│   │   └── database.py        # User and key database management
-│   ├── key_mgmt/
-│   │   ├── __init__.py
-│   │   └── rsa_manager.py     # RSA key generation and encryption
-│   └── crypto/                # Future cryptographic modules
-├── data/                      # Database and key storage
-│   ├── security_system.db     # SQLite database (auto-created)
-│   └── keys/                  # Exported key files (auto-created)
-└── README.md
+│   ├── core/
+│   │   └── session.py              # Global session state management
+│   └── utils/                      # Core utility modules
+│       ├── db_helper.py            # SQLite database operations
+│       ├── crypto_helper.py        # Password hashing utilities
+│       ├── rsa_key_helper.py       # RSA key generation & management
+│       ├── file_crypto_helper.py   # File encryption/decryption
+│       ├── signature_helper.py     # Digital signature operations
+│       ├── otp_helper.py           # TOTP/MFA functionality
+│       └── logger.py               # Security event logging
+│
+└── data/                           # Application data directory
+    ├── users.db                    # SQLite database (auto-created)
+    ├── keys/                       # User key storage
+    │   └── {email}/                # Per-user key directories
+    │       ├── {email}_priv.enc    # Encrypted private key
+    │       └── {email}_pub.pem     # Public key (PEM format)
+    └── logs/                       # Application logs
+        ├── security.log            # Security events
+        └── signature_log.json      # Digital signature audit trail
 ```
 
-## Features Implemented
+## 🛡️ Security Features Deep Dive
 
 ### User Authentication System
-- **User Registration**: Secure user registration with password validation
-- **Password Security**: PBKDF2-SHA256 hashing with random salt (100,000 iterations)
-- **User Login**: Credential verification and session management
-- **Database Storage**: SQLite database for user and key management
+- **Password Security**: SHA256 hashed + random salt
+- **Account Protection**: Failed login tracking with progressive lockout (5 attempts)
+- **Session Management**: Secure in-memory session state with automatic cleanup
+- **Multi-Factor Authentication**: TOTP-based MFA with QR code setup
 
-### RSA Key Management System
-- **2048-bit RSA Key Generation**: Secure RSA key pair generation
-- **Private Key Encryption**: AES-256-CBC encryption of private keys using user passphrase
-- **Key Derivation**: PBKDF2-SHA256 for deriving AES keys from passphrases
-- **Automatic Expiration**: 90-day validity period for all generated keys
-- **Key Status Monitoring**: Real-time key status and expiration tracking
-- **PEM Export**: Export keys to standard PEM format files
-- **Email Association**: Keys are linked to user email addresses
-- **Multiple Key Support**: Users can have multiple keys with different expiration dates
+### RSA Key Management  
+- **Key Generation**: 2048-bit RSA keys using cryptographically secure random numbers
+- **Private Key Protection**: AES-256-GCM encryption using PBKDF2-derived keys with 100,000 iterations
+- **Key Lifecycle**: 90-day automatic expiration with renewal notifications
+- **Secure Storage**: Encrypted private keys + PEM public keys with file permissions
+- **Key Export**: Industry-standard PEM format for interoperability
 
-### Planned Features
-- Multi-factor authentication (MFA) with TOTP
-- File encryption/decryption using hybrid AES+RSA
-- Digital signatures and verification
-- QR code generation for key sharing
-- Admin dashboard and logging
-- Key recovery mechanisms
+### File Encryption System
+- **Hybrid Encryption**: AES-256-GCM for data + RSA-2048 for key transport
+- **Format Support**: Combined JSON encrypted format or separate key/data files
+- **Metadata Protection**: Sender/receiver tracking with timestamp verification
+- **Integrity Protection**: GCM authenticated encryption prevents tampering
 
-## How to Run
+### Digital Signature Implementation
+- **Algorithm**: RSA-PSS with SHA-256 for collision resistance
+- **Verification**: Cryptographic proof of document authenticity and integrity
+- **Audit Trail**: JSON-formatted signature logs with tamper detection
+- **Standards Compliance**: PKCS#1 v2.1 PSS padding for security
 
-1. Clone the repository:
+### Administrative Controls
+- **Role-Based Access**: User/Admin privilege separation
+- **Account Management**: User promotion, demotion, and lockout controls
+- **System Monitoring**: Real-time user activity and key status tracking
+- **Audit Logging**: Comprehensive security event logging
 
-   ```bash
-   git clone https://github.com/Burncake/ComputerSecurityProject.git
-   cd ComputerSecurityProject
-   ```
+## 🚀 Quick Start Guide
 
-2. Install system dependencies (Ubuntu/Debian):
+### Prerequisites
+- **Python 3.12+** (3.12.10 recommended)
+- **Git** for cloning the repository
+- **Windows, macOS, or Linux** operating system
 
-   ```bash
-   sudo apt update
-   sudo apt install python3-tk python3-pip
-   ```
+### Installation
 
-3. Create a virtual environment and install Python dependencies:
+#### Option 1: Windows Setup (PowerShell)
+```powershell
+# Clone the repository
+git clone https://github.com/Burncake/ComputerSecurityProject.git
+cd ComputerSecurityProject
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+# Create virtual environment
+python -m venv venv
+venv\Scripts\Activate.ps1
 
-4. Run the main program:
+# Install dependencies
+pip install -r requirements.txt
 
-   ```bash
-   python3 main.py
-   ```
-
-5. (Optional) Run tests to verify functionality:
-
-   ```bash
-   python3 test_rsa.py
-   ```
-
-## Usage Guide
-
-### Registration
-1. Click "Register" in the main window
-2. Enter username, email, and a secure passphrase
-3. Optionally enable auto-generation of RSA key pair
-4. Complete registration
-
-### Login and Key Management
-1. Click "Login" in the main window
-2. Enter your credentials
-3. Access the Key Management window to:
-   - Generate new RSA key pairs
-   - View key status and expiration dates
-   - Export keys to PEM files
-   - Monitor key validity
-
-### Key Security Features
-- **Private keys** are encrypted with AES-256-CBC using your passphrase
-- **Public keys** are stored in Base64 format
-- **Keys expire** automatically after 90 days
-- **Export functionality** saves keys in standard PEM format
-
-## Contribution Guidelines
-
-* Create a feature branch before working:
-
-  ```bash
-  git checkout -b feature/your-feature-name
-  ```
-* Follow Python PEP 8 coding standards
-* Add tests for new functionality
-* Commit changes with meaningful messages
-* Push and create a Pull Request
-
-## Testing
-
-The project includes comprehensive tests:
-
-```bash
-# Run all RSA functionality tests
-python3 test_rsa.py
-
-# Test specific components
-python3 -c "from modules.key_mgmt.rsa_manager import RSAKeyManager; print('RSA Manager OK')"
-python3 -c "from modules.auth.database import DatabaseManager; print('Database Manager OK')"
+# Run the application
+python main.py
 ```
 
-## Security Notes
+#### Option 2: Linux/macOS Setup (Automated)
+```bash
+# Clone and setup automatically
+git clone https://github.com/Burncake/ComputerSecurityProject.git
+cd ComputerSecurityProject
 
-- **Never share your private keys** or passphrases
-- **Keys expire after 90 days** for security - generate new ones regularly
-- **Passphrases must be strong**: minimum 8 characters with uppercase, lowercase, digits, and special characters
-- **Database is local**: stored in `data/security_system.db`
-- **Exported keys**: stored in `data/keys/` directory
+# Run setup script (installs system dependencies + Python packages)
+chmod +x setup.sh
+./setup.sh
 
-## Authors
+# Activate virtual environment and run
+source venv/bin/activate
+python main.py
+```
 
-* 22127021 - Phan Thế Anh
-* 22127127 - Nguyễn Khánh Hoàng
-* 22127422 - Lê Thanh Minh Trí
+#### Option 3: Manual Setup (Any Platform)
+```bash
+# After cloning the repository
+python3 -m venv venv
+
+# Activate virtual environment
+# Windows: venv\Scripts\activate
+# Linux/macOS: source venv/bin/activate
+
+pip install -r requirements.txt
+python main.py
+```
+
+### First Run
+1. **Database Initialization**: The application automatically creates the `data/` directory and SQLite database
+2. **Admin Account**: Register the first admin account by manually updating `data/users.db` database
+3. **Key Generation**: Create your first RSA key pair during registration or afterward
+4. **MFA Setup**: Optionally enable TOTP multi-factor authentication
+
+## 📖 User Guide
+
+### Getting Started
+1. **Registration**: Create a new account with email and secure passphrase
+2. **MFA Setup**: Enable TOTP for additional security (scan QR code with authenticator app)
+3. **Recovery Code**: Generate a secure recovery code for account recovery (only shown once)
+4. **Key Creation**: Generate your RSA key pair (required for encryption/signing)
+
+### Core Workflows
+
+#### Login
+1. Navigate to **Login** tab
+2. Enter your email and passphrase
+3. Enter the TOTP code from your authenticator app
+
+#### Key Management
+1. Navigate to **Keys** tab
+2. Renew or view your RSA key pair details
+(Optional) Export your key in PEM format or QR code for public key sharing
+3. Search and import another user's public key by email or QR code image
+4. View other users' public keys status
+
+#### File Encryption
+1. Navigate to **Encrypt** tab
+2. Select file to encrypt and recipient's public key (must be imported in your account)
+3. Choose output format (combined or separate key/data)
+4. Encrypted file is saved with `.enc` extension, if separate, key is saved as `.key` file
+
+#### File Decryption  
+1. Navigate to **Decrypt** tab
+2. Select encrypted file and provide your private key passphrase if required
+3. Decrypted file is restored to original format
+
+#### Digital Signatures
+1. Navigate to **Sign** tab  
+2. Select document to sign and provide private key passphrase
+3. Signature file (`.sig`) is created alongside original document
+
+#### Signature Verification
+1. Navigate to **Verify** tab
+2. Select document and corresponding signature file (ensure public key is imported)
+3. System verifies authenticity and integrity
+
+### Administrative Functions
+- **User Management**: Promote/demote users, lock/unlock accounts
+- **System Monitoring**: View active users and security logs
+- **Audit Trail**: Access comprehensive logging of all security events
+
+## 🔒 Security Best Practices
+
+### For Users
+- **Strong Passphrases**: Use minimum 8 characters with mixed case, numbers, and symbols
+- **MFA Enabled**: Always enable TOTP multi-factor authentication
+- **Key Rotation**: Renew your RSA keys before 90-day expiration
+- **Secure Storage**: Never share private key passphrases or recovery codes
+- **Regular Updates**: Regularly check your other users' public keys status for validity
+- **Recovery Code**: Store your recovery code securely, as it is to recover your account if you lose access
+
+### For Developers  
+- **Input Validation**: User inputs are sanitized and validated
+- **Error Handling**: Detailed logging without exposing sensitive information
+- **Dependency Management**: Regular security updates for all dependencies
+- **Code Review**: Security-focused code review process
+
+### Security Considerations
+- **Local Storage**: All data stored locally - no cloud dependencies
+- **Memory Management**: Sensitive data cleared from memory after use
+- **File Permissions**: Restricted access to key files and database
+- **Session Timeout**: Automatic session expiration after inactivity
+- **Audit Trail**: Comprehensive logging for security monitoring
+
+## 🧪 Testing & Validation
+
+### Cryptographic Testing
+```bash
+# Test RSA key generation and encryption
+python -c "from modules.utils.rsa_key_helper import *; print('RSA module OK')"
+
+# Test file encryption/decryption
+python -c "from modules.utils.file_crypto_helper import *; print('File crypto OK')"
+
+# Test digital signatures
+python -c "from modules.utils.signature_helper import *; print('Signatures OK')"
+
+# Validate database operations
+python -c "from modules.utils.db_helper import *; print('Database OK')"
+```
+
+### Security Validation
+- **Passphrase Strength**: Ensure passphrases meet complexity requirements and are SHA256 hashed securely
+- **AES Key Strength**: PBKDF2 with 100,000 iterations exceeds NIST recommendations
+- **Key Encryption**: Verify private keys are encrypted with AES-256-GCM and PBKDF2
+- **RSA Key Sizes**: 2048-bit RSA and 256-bit AES meet current security standards
+- **Cryptographic Libraries**: Uses industry-standard pycryptodome and cryptography libraries
+- **Algorithm Selection**: Modern algorithms (AES-GCM, RSA-PSS, SHA-256) with secure parameters
+
+### Performance Testing
+- **Key Generation**: ~1-2 seconds for 2048-bit RSA on modern hardware
+- **File Encryption**: Scales linearly with file size (AES-GCM performance)
+- **Database Operations**: Optimized queries with proper indexing
+- **GUI Responsiveness**: Background threading for crypto operations
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+### Development Setup
+```bash
+# Fork the repository and clone your fork
+git clone https://github.com/your-username/ComputerSecurityProject.git
+cd ComputerSecurityProject
+
+# Create a feature branch
+git checkout -b feature/your-feature-name
+
+# Set up development environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Code Standards
+- **Python Style**: Follow PEP 8 coding standards
+- **Documentation**: Add docstrings for all public functions
+- **Type Hints**: Use type annotations where appropriate
+- **Error Handling**: Comprehensive exception handling with logging
+- **Security**: Security-first development approach
+
+### Testing Requirements
+- Add unit tests for new functionality
+- Ensure all existing tests pass
+- Test cryptographic operations thoroughly
+- Validate input sanitization and error handling
+
+### Pull Request Process
+1. Create feature branch with descriptive name
+2. Make atomic commits with clear messages
+3. Add/update documentation as needed
+4. Ensure all tests pass
+5. Submit pull request with detailed description
+
+## 📄 License & Legal
+
+### License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Security Disclosure
+If you discover a security vulnerability, please report it privately to the maintainers before public disclosure.
+
+### Educational Purpose
+This project is designed for educational and research purposes. While it implements industry-standard cryptographic practices, please conduct thorough security assessments before using in production environments.
+
+## 👥 Authors & Acknowledgments
+
+### Development Team
+- **22127021** - Phan Thế Anh
+- **22127127** - Nguyễn Khánh Hoàng  
+- **22127422** - Lê Thanh Minh Trí
+
+### Acknowledgments
+- **pycryptodome** developers for robust cryptographic primitives
+- **Python cryptography** library contributors
+- **NIST** for cryptographic standards and guidelines
+- **OWASP** for security best practices
+
+## 🔗 Additional Resources
+
+### Cryptographic Standards
+- [NIST SP 800-132](https://csrc.nist.gov/publications/detail/sp/800-132/final) - PBKDF2 Recommendations
+- [RFC 8017](https://tools.ietf.org/html/rfc8017) - PKCS #1 v2.2: RSA Cryptography
+- [RFC 6238](https://tools.ietf.org/html/rfc6238) - TOTP Algorithm
+
+### Security References  
+- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)
+- [Python Cryptography Documentation](https://cryptography.io/)
+- [Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)
+
+---
+
+**⚠️ Security Notice**: This application handles cryptographic keys and sensitive data. Always run on trusted systems and keep your software updated. For production use, conduct thorough security audits and penetration testing.
