@@ -1,4 +1,4 @@
-# BÁO CÁO ĐỒ ÁN BẢO MẬT THÔNG TIN
+# BÁO CÁO ĐỒ ÁN AN NINH MÁY TÍNH 1
 ## Hệ thống Bảo mật với Mã hóa và Chữ ký Số
 
 ---
@@ -7,9 +7,9 @@
 
 | **Thành viên** | **MSSV** | **Email** | **Vai trò** |
 |---------------|----------|-----------|-------------|
-| Phan Thế Anh | 22127021 | phan.the.anh@example.com | Phát triển giao diện GUI, quản lý session |
-| Nguyễn Khánh Hoàng | 22127127 | nguyen.khanh.hoang@example.com | Mã hóa RSA/AES, chữ ký số |
-| Lê Thanh Minh Trí | 22127422 | le.thanh.minh.tri@example.com | Xác thực OTP/TOTP, quản lý cơ sở dữ liệu |
+| Phan Thế Anh | 22127021 | ptanh22@clc.fitus.edu.vn | Cập nhật tài khoản, Khôi phục tài khoản, Báo cáo, Video demo |
+| Nguyễn Khánh Hoàng | 22127127 | nkhoang22@clc.fitus.edu.vn | Quản lí khoá RSA (cá nhân và các public key), QR code, Chữ ký số và xác minh chữ ký |
+| Lê Thanh Minh Trí | 22127422 | ltmtri22@clc.fitus.edu.vn | Đăng ký, Đăng nhập/MFA, Giới hạn đăng nhập, Phân quyền tài khoản, Tìm kiếm public key, Mã hóa và giải mã tập tin, Tùy chọn định dạng lưu, Log bảo mật, Quản lý dữ liệu |
 
 ---
 
@@ -408,7 +408,8 @@ data/
 - **Recovery Code**: Hiển thị 1 lần duy nhất sau khi đăng ký thành công
 
 ### 6.3 Đăng nhập & MFA
-![Login Screen](screenshots/login_screen.png)
+![Login Screen 1](screenshots/login_screen1.png)
+![Login Screen 2](screenshots/login_screen2.png)
 - **Fields**: Email, passphrase
 - **MFA**: TOTP code input
 - **Security**: Hiển thị lockout status
@@ -422,6 +423,7 @@ data/
 ![Key Management 1](screenshots/key_management1.png)
 ![Key Management 2](screenshots/key_management2.png)
 ![Key Management 3](screenshots/key_management3.png)
+![Key Management 4](screenshots/key_management4.png)
 - **Status**: Thông tin khóa hiện tại
 - **Actions**: Tạo mới, tải về
 - **QR Code**: Hiển thị QR code cho public key
@@ -469,7 +471,8 @@ data/
 - **Logs**: System security logs viewer
 
 ### 6.12 Account Recovery
-![Account Recovery](screenshots/account_recovery.png)
+![Account Recovery 1](screenshots/account_recovery1.png)
+![Account Recovery 2](screenshots/account_recovery2.png)
 - **Recovery Code Input**: Nhập recovery code để khôi phục tài khoản
 - **New Passphrase**: Nhập passphrase mới
 - **MFA Reset**: Tùy chọn đặt lại TOTP nếu cần
@@ -576,7 +579,9 @@ python main.py
 
 ## **10. DEMO**
 
-Link video demo: 
+Link to Demo Video on [Google Drive](https://drive.google.com/file/d/1COfF9LVJ2SrHYZUdPVQqcCJND_ZNMN6Z/view?usp=sharing)
+
+Link to Demo Video on [OneDrive](https://studenthcmusedu-my.sharepoint.com/:v:/g/personal/22127422_student_hcmus_edu_vn/EX1xhiy16nhFtfnJ1yDqWpkBDJzf7k9uEkzToupGTHK-Aw?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=hMpcJb)
 
 ---
 
@@ -632,7 +637,7 @@ Link video demo:
 
 ---
 
-**📝 Ghi chú**: Báo cáo này được tạo ngày 15/7/2025 cho đồ án Bảo mật Thông tin. Toàn bộ source code và documentation có sẵn tại [GitHub Repository](https://github.com/Burncake/ComputerSecurityProject).
+**📝 Ghi chú**: Báo cáo này được tạo ngày 15/7/2025 cho đồ án An ninh máy tính 1. Toàn bộ source code và documentation có sẵn tại [GitHub Repository](https://github.com/Burncake/ComputerSecurityProject).
 
 ---
 
